@@ -75,7 +75,9 @@ function Dashboard(props) {
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
         <Button onClick={handleConnectScan} variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>Scan</Button>
-        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>Write</Button>
+        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>Slot Manager</Button>
+        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>Saved Cards</Button>
+        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>Write Card</Button>
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>Settings</Button>
       </div>
     </div>
