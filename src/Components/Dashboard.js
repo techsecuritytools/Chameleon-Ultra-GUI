@@ -42,14 +42,13 @@ function Dashboard(props) {
 
     const actual = await props.ultraUsb.cmdHf14aScan()
     console.log("scanHF : ",actual)
-    
 };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <div style={{ textAlign: 'center', }}>
         <h1>Chameleon-Ultra</h1>
-        <label style={{fontWeight:'bold'}}>FirmWare Version : </label><label>{props.chameleonInfo.version ? props.chameleonInfo.version : ''}</label>
+        <label style={{fontWeight:'bold'}}>Firmware Version : </label><label>{props.chameleonInfo.version ? props.chameleonInfo.version : ''}</label>
         <br />
         <br />
         <CreditCardIcon />
@@ -75,9 +74,9 @@ function Dashboard(props) {
         </Box>
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-        <Button onClick={handleConnectScan} variant="contained" sx={{ margin: '0 10px' }}>Scan</Button>
-        <Button variant="contained" sx={{ margin: '0 10px' }}>Write</Button>
-        <Button variant="contained" sx={{ margin: '0 10px' }}>Settings</Button>
+        <Button onClick={handleConnectScan} variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>Scan</Button>
+        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>Write</Button>
+        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>Settings</Button>
       </div>
     </div>
   );
