@@ -61,8 +61,17 @@ const Settings = (props) => {
         setModel(DeviceModel[model]);
     }
     
+    //Red buttons
     const enterBootoader = async() => {
         await props.ultraUsb.cmdEnterBootloader();
+    }
+
+    const defaultReset = async() => {
+        await props.ultraUsb.cmdResetSettings();
+    }
+
+    const factoryReset = async() => {
+        await props.ultraUsb.cmdWipeFds();
     }
 
 
@@ -97,8 +106,8 @@ const Settings = (props) => {
         </Typography>
         <br></br>
         <Button variant="contained" sx={{ width: '100%', margin: '0px 10px' }} style={{backgroundColor: 'red', color: 'white' }} startIcon={<HealthAndSafetyIcon />} onClick={enterBootoader}>Enter Bootloader Mode</Button>
-        <Button variant="contained" sx={{ width: '100%', margin: '10px 10px' }} style={{backgroundColor: 'red', color: 'white'}} startIcon={<RestartAltIcon />}>Reset Settings to default</Button>
-        <Button variant="contained" sx={{ width: '100%', margin: '0px 10px' }} style={{backgroundColor: 'red', color: 'white'}} startIcon={<BuildIcon />}>Reset To Factory Settings</Button>
+        <Button variant="contained" sx={{ width: '100%', margin: '10px 10px' }} style={{backgroundColor: 'red', color: 'white'}} startIcon={<RestartAltIcon />} onClick={defaultReset}>Reset Settings to default</Button>
+        <Button variant="contained" sx={{ width: '100%', margin: '0px 10px' }} style={{backgroundColor: 'red', color: 'white'}} startIcon={<BuildIcon />} onClick={factoryReset}>Reset To Factory Settings</Button>
 
         </Box>
 
