@@ -5,12 +5,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import SettingsIcon from '@mui/icons-material/Settings';
-import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import BuildIcon from '@mui/icons-material/Build';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 
 
