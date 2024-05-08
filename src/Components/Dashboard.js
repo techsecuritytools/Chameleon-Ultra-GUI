@@ -3,7 +3,6 @@ import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import WidgetsIcon from '@mui/icons-material/Widgets';
-import SettingsIcon from '@mui/icons-material/Settings';
 import CreateIcon from '@mui/icons-material/Create';
 import SaveIcon from '@mui/icons-material/Save';
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
@@ -16,6 +15,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Radio from '@mui/material/Radio';
 import { green,red } from '@mui/material/colors';
+import Settings from './Settings';
 
 const { Buffer, DarksideStatus, DeviceMode, Mf1KeyType } = window.ChameleonUltraJS
 const {Crypto1} = window
@@ -130,7 +130,7 @@ function Dashboard(props) {
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<WidgetsIcon/>}>Slot Manager</Button>
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}endIcon= {<SaveIcon/>}>Saved Cards</Button>
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<CreateIcon/>}>Write Card</Button>
-        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon= {<SettingsIcon/>}>Settings</Button>
+        <Settings ultraUsb={props.ultraUsb}/>
       </div>
       <Dialog
         open={openDialog}
