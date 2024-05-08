@@ -41,6 +41,7 @@ const LowFrequencyScan = (props) => {
 
       const handleClickClose = () => {
         setOpenLFscan(false);
+        setLFscanInfo(false);
       };
 
     return (
