@@ -9,21 +9,47 @@ import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRo
 import Radio from '@mui/material/Radio';
 import { green,red } from '@mui/material/colors';
 import Paper from '@mui/material/Paper';
+import _ from 'lodash'
+import Keys from '../Keys/Keys';
 
-const { Buffer, Mf1KeyType } = window.ChameleonUltraJS
+
 
 const HighFrequencyScan = (props) => {
 
     const [openDialog,setOpenDialog] = useState(false);
     const [dialogInfo,setDialogInfo] = useState(false);
 
+
       const handleConnectScan = async() => {
 
-        //try{
         try{
+        const { Buffer, DarksideStatus, Mf1KeyType,Slot,FreqType} = window.ChameleonUltraJS
+        const { Crypto1 } = window
+
+        const block = 0
+        const keyType = Mf1KeyType.KEY_A
+
         const actual = await props.ultraUsb.cmdHf14aScan()
         setDialogInfo(actual[0])
+
+        Keys.getKeys()
+
+/*
+        const key = await Crypto1.darkside(
+          async attempt => {
+            const accquired = await props.ultraUsb.cmdMf1AcquireDarkside(block, keyType, attempt === 0)
+            console.log(_.mapValues(accquired, buf => Buffer.isBuffer(buf) ? buf.toString('hex') : buf))
+            if (accquired.status === DarksideStatus.LUCKY_AUTH_OK) throw new Error('LUCKY_AUTH_OK')
+            if (accquired.status !== DarksideStatus.OK) throw new Error('card is not vulnerable to Darkside attack')
+            return accquired
+          },
+          async key => {
+            return await props.ultraUsb.cmdMf1CheckBlockKey({ block, keyType, key })
+          },
+        )
+        console.log(`key founded: ${key.toString('hex')}`)
         
+*/
         let keysA = []
         let keysB = []
         for(let i=0;i<16;i++){
@@ -47,7 +73,7 @@ const HighFrequencyScan = (props) => {
           keysMifareB: keysB, // Adding new data property
         }));
       }catch(e){
-        
+        console.log('test : ',e)
       }
         setOpenDialog(true)
     };
