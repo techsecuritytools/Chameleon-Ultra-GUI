@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -11,6 +11,10 @@ import { green,red } from '@mui/material/colors';
 import Paper from '@mui/material/Paper';
 import Keys from '../Keys/Keys';
 import _ from 'lodash'
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Tooltip from '@mui/material/Tooltip';
+import Fab from '@mui/material/Fab';
 
 const { Buffer } = window.ChameleonUltraJS
 
@@ -18,6 +22,18 @@ const HighFrequencyScan = (props) => {
 
     const [openDialog,setOpenDialog] = useState(false);
     const [dialogInfo,setDialogInfo] = useState(false);
+    const [isRecoveryKeysInProcess,setIsRecoveryKeysInProcess] = useState(false)
+    const [seconds, setSeconds] = useState(0);
+
+    useEffect(() => {
+      // Set up the interval
+      const interval = setInterval(() => {
+        setSeconds(seconds => seconds + 1);
+      }, 1000);
+  
+      // Clear the interval on component unmount
+      return () => clearInterval(interval);
+    }, []);
 
     
     Keys.loadKeys()
@@ -39,6 +55,7 @@ const HighFrequencyScan = (props) => {
       }, []);
 
       console.log('Start recovery ...')
+      setIsRecoveryKeysInProcess(true)
       for(let x=0;x<falseIndices.length;x++){
           keysToTest = Buffer.from(allKeys,'hex').chunk(6)
           sectorKey = await props.ultraUsb.mf1CheckSectorKeys(falseIndices[x], keysToTest)
@@ -58,7 +75,7 @@ const HighFrequencyScan = (props) => {
           }
             break
       }
-      
+      setIsRecoveryKeysInProcess(false)
       console.log('End recovery ...')
       console.log('copykeysMifareA',copykeysMifareA)
       console.log('copykeysMifareB',copykeysMifareB)
@@ -93,12 +110,12 @@ const HighFrequencyScan = (props) => {
           keysB[i] = {'name': 'B','status': false, 'key' : ''}
         }
       }
-  
       setDialogInfo(prevInfo => ({
         ...prevInfo,
         keysMifareA: keysA, // Adding new data property
         keysMifareB: keysB, // Adding new data property
       }));
+      setSeconds(0)
     }catch(e){
       console.log('test : ',e)
     }
@@ -106,6 +123,7 @@ const HighFrequencyScan = (props) => {
     };
 
     const onCloseDialog = () =>{
+      setSeconds(0)
       setDialogInfo({})
       setOpenDialog(false)
     }
@@ -127,9 +145,12 @@ const HighFrequencyScan = (props) => {
             <DialogContentText id="alert-dialog-description">
             {dialogInfo?
               Object.entries(dialogInfo).map(([key, value]) => (
+                !key.includes('keysMifare') ?
                 <div key={key}>
                   <strong>{key}</strong>: {value.toString('hex')}
                 </div>
+                :
+                <div />
               ))
               :
               "No Card Detected"
@@ -166,16 +187,24 @@ const HighFrequencyScan = (props) => {
                 {dialogInfo !== undefined && dialogInfo.keysMifareA !== undefined?
                 dialogInfo.keysMifareA.map((row) => (
                   <TableCell >
-                    <Radio
-                      checked={true}
-                      inputProps={{ 'aria-label': 'A' }}
-                      sx={{
-                        color: row.status? green[800] : red[800],
-                        '&.Mui-checked': {
-                          color: row.status? green[600] : red[600],
-                        },
-                      }}
-                    />
+                    {!row.status && isRecoveryKeysInProcess?
+                    <Box sx={{ display: 'flex' }}>
+                      <CircularProgress />
+                    </Box>
+                    :
+                    <Tooltip title={row.key} placement="top">
+                      <Radio
+                        checked={true}
+                        inputProps={{ 'aria-label': 'A' }}
+                        sx={{
+                          color: row.status? green[800] : red[800],
+                          '&.Mui-checked': {
+                            color: row.status? green[600] : red[600],
+                          },
+                        }}
+                      />
+                    </Tooltip>
+                    }
                   </TableCell>
                 ))
                 : ''  
@@ -188,6 +217,12 @@ const HighFrequencyScan = (props) => {
                 {dialogInfo !== undefined && dialogInfo.keysMifareB !== undefined?
                 dialogInfo.keysMifareB.map((row) => (
                   <TableCell >
+                    {!row.status && isRecoveryKeysInProcess?
+                    <Box sx={{ display: 'flex' }}>
+                      <CircularProgress />
+                    </Box>
+                    :
+                    <Tooltip title={row.key} placement="top">
                     <Radio
                       checked={true}
                       inputProps={{ 'aria-label': 'A' }}
@@ -198,6 +233,8 @@ const HighFrequencyScan = (props) => {
                         },
                       }}
                     />
+                    </Tooltip>
+                    }
                   </TableCell>
                 ))
                 : ''  
@@ -210,9 +247,13 @@ const HighFrequencyScan = (props) => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={recoveryKeysByDict}>recover Keys By Dict</Button>
-            <Button onClick={onCloseDialog} autoFocus>
-              Agree
+            {isRecoveryKeysInProcess?
+            <h4>Recovery Keys (~300 sec) : <label style={{color:'red'}}> {seconds} sec</label></h4>
+            :
+            <Button onClick={recoveryKeysByDict}  variant="contained" style={{backgroundColor: 'green', color: 'white'}}>recover Keys By Dict</Button>
+            }
+            <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              Close
             </Button>
           </DialogActions>
         </Dialog>
