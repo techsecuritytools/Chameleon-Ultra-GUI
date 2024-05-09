@@ -1,24 +1,25 @@
 export default class Keys {
-    
-    constructor(){
-        this.allKeys = []
+    static allKeys = [];
+
+    static async loadKeys() {
+        try {
+            const response = await fetch('/Keys.txt');  // Adjust the path if necessary
+            if (!response.ok) {
+                throw new Error('Network response was not ok.');
+            }
+            const text = await response.text();
+            this.allKeys = text
+        } catch (error) {
+            console.log('Failed to load keys:', error.message);
+        }
     }
+    
 
     static getKeys(){
-        fetch('/Keys.txt')  // Adjust the path if your file is deeper in the structure
-            .then(response => {
-                if (response.ok) {
-                console.log('text ',response)
-                return response.text();
-                }
-                throw new Error('Network response was not ok.');
-            })
-            .then(text => console.log())
-            .catch(error => console.log('Failed to load file: ' + error.message));
+        return this.allKeys;
             }
 
     static getCountKeys(){
-
     }
 
     static getSpecificKeyByIndex(index){
