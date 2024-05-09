@@ -121,6 +121,55 @@ const HighFrequencyScan = (props) => {
 
     }
 
+
+  const getUniqueKeys = () =>{
+    const keySet = new Set();  // Create a new Set to store unique keys
+  
+    // Iterate over the array and add the 'key' from each object to the Set
+    dialogInfo.keysMifareA.forEach(item => {
+      keySet.add(item.key);
+    });
+    dialogInfo.keysMifareB.forEach(item => {
+      keySet.add(item.key);
+    });
+    // Convert the Set back to an array (if needed) and return it
+    return Array.from(keySet).join('\n');
+  }
+
+    const getDataFromCard = async() =>{
+      let keysfromCard = getUniqueKeys()
+      const keys = Buffer.from(keysfromCard, 'hex').chunk(6)
+      let dataFromCard =[]
+
+      for(let x=0;x<16;x++){
+        let data = await props.ultraUsb.mf1ReadSectorByKeys(x, keys)
+        dataFromCard.push(data.data.toString('hex').match(new RegExp('.{1,' + 32 + '}', 'g')) || [])
+      }
+      return {
+        keys: keysfromCard,
+        data: dataFromCard
+      }
+    }
+
+    const handleDownload = async() => {
+
+      let datafromCard = await getDataFromCard()
+      // Convert the data to a string and create a Blob from it
+      
+      const jsonStr = JSON.stringify(datafromCard, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+
+      // Create a link element, use it to download the blob, and remove it after
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'MF_Card_Data.json'; // Name the download file here
+      document.body.appendChild(link); // Required for Firefox
+      link.click();
+      URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+  };
+
     const onCloseDialog = () =>{
       setDialogInfo({})
       setOpenDialog(false)
@@ -149,9 +198,14 @@ const HighFrequencyScan = (props) => {
             allKeysDecrypted?
             <Button onClick={recoveryKeysByDict}  variant="contained" style={{backgroundColor: 'green', color: 'white'}}>recover Keys By Dict</Button>
             :
-            <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+            <>
+            <Button onClick={handleDownload} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
               Download Card
             </Button>
+            <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              Save Card to Chameleon
+            </Button>
+            </>
             }
             <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
               Close
