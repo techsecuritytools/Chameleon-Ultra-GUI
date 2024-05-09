@@ -9,50 +9,104 @@ import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRo
 import Radio from '@mui/material/Radio';
 import { green,red } from '@mui/material/colors';
 import Paper from '@mui/material/Paper';
+import Keys from '../Keys/Keys';
+import _ from 'lodash'
 
-const { Buffer, Mf1KeyType } = window.ChameleonUltraJS
+const { Buffer } = window.ChameleonUltraJS
 
 const HighFrequencyScan = (props) => {
 
     const [openDialog,setOpenDialog] = useState(false);
     const [dialogInfo,setDialogInfo] = useState(false);
 
-      const handleConnectScan = async() => {
-
-        //try{
-        try{
-        const actual = await props.ultraUsb.cmdHf14aScan()
-        setDialogInfo(actual[0])
-        
-        let keysA = []
-        let keysB = []
-        for(let i=0;i<16;i++){
-          let actual = await props.ultraUsb.cmdMf1CheckBlockKey({
-            block: i,
-            key: Buffer.fromHexString('FFFFFFFFFFFF'),
-            keyType: Mf1KeyType.KEY_A,
-          })
-          let actual2 = await props.ultraUsb.cmdMf1CheckBlockKey({
-            block: i,
-            key: Buffer.fromHexString('FFFFFFFFFFFF'),
-            keyType: Mf1KeyType.KEY_B,
-          })
-          keysA[i] = {'name': 'A','status': actual, 'key' : actual?'FFFFFFFFFFFF':''}
-          keysB[i] = {'name': 'B','status': actual2, 'key' : actual2?'FFFFFFFFFFFF':''}
-        }
     
-        setDialogInfo(prevInfo => ({
-          ...prevInfo,
-          keysMifareA: keysA, // Adding new data property
-          keysMifareB: keysB, // Adding new data property
-        }));
-      }catch(e){
-        
+    Keys.loadKeys()
+    let allKeys = Keys.getKeys()
+
+    const recoveryKeysByDict = async() =>{
+
+
+      let keysToTest;
+      let sectorKey;
+      let copykeysMifareA = dialogInfo.keysMifareA
+      let copykeysMifareB = dialogInfo.keysMifareB
+
+      const falseIndices = dialogInfo.keysMifareA.reduce((indices, item, index) => {
+        if (!item.status) {
+          indices.push(index);
+        }
+        return indices;
+      }, []);
+
+      console.log('Start recovery ...')
+      for(let x=0;x<falseIndices.length;x++){
+          keysToTest = Buffer.from(allKeys,'hex').chunk(6)
+          sectorKey = await props.ultraUsb.mf1CheckSectorKeys(falseIndices[x], keysToTest)
+          console.log('sectorKey',_.mapValues(sectorKey, key => key.toString('hex')))
+          if(sectorKey['96'] !== undefined){
+              console.log('KEY A FOUND : ',sectorKey['96'].toString('hex'))
+              copykeysMifareA[falseIndices[x]] = {'name': 'A','status': true, 'key' : sectorKey['96'].toString('hex')}
+          }else{
+            copykeysMifareA[falseIndices[x]] = {'name': 'A','status': false, 'key' : ''}
+          }
+
+          if(sectorKey['97'] !== undefined){
+            console.log('KEY B FOUND : ',sectorKey['97'].toString('hex'))
+              copykeysMifareB[falseIndices[x]] = {'name': 'B','status': true, 'key' : sectorKey['97'].toString('hex')}
+            }else{
+              copykeysMifareB[falseIndices[x]] = {'name': 'B','status': false, 'key' : ''}
+          }
+            break
       }
-        setOpenDialog(true)
+      
+      console.log('End recovery ...')
+      console.log('copykeysMifareA',copykeysMifareA)
+      console.log('copykeysMifareB',copykeysMifareB)
+      setDialogInfo(prevInfo => ({
+        ...prevInfo,
+        keysMifareA: copykeysMifareA, // Adding new data property
+        keysMifareB: copykeysMifareB, // Adding new data property
+      }));
+
+    }
+
+    const handleConnectScan = async() => {
+
+      try{
+
+      const actual = await props.ultraUsb.cmdHf14aScan()
+      setDialogInfo(actual[0])
+
+      let keysA = []
+      let keysB = []
+      const keys = Buffer.from('FFFFFFFFFFFF\n000000000000\nA0A1A2A3A4A5\nD3F7D3F7D3F7','hex').chunk(6)
+      for(let i=0;i<16;i++){
+        const sectorKey = await props.ultraUsb.mf1CheckSectorKeys(i, keys)
+        if(sectorKey['96'] !== undefined){
+          keysA[i] = {'name': 'A','status': true, 'key' : sectorKey['96'].toString('hex')}
+        }else{
+          keysA[i] = {'name': 'A','status': false, 'key' : ''}
+        }
+        if(sectorKey['97'] !== undefined){
+          keysB[i] = {'name': 'B','status': true, 'key' : sectorKey['97'].toString('hex')}
+        }else{
+          keysB[i] = {'name': 'B','status': false, 'key' : ''}
+        }
+      }
+  
+      setDialogInfo(prevInfo => ({
+        ...prevInfo,
+        keysMifareA: keysA, // Adding new data property
+        keysMifareB: keysB, // Adding new data property
+      }));
+    }catch(e){
+      console.log('test : ',e)
+    }
+      setOpenDialog(true)
     };
 
     const onCloseDialog = () =>{
+      setDialogInfo({})
       setOpenDialog(false)
     }
 
@@ -156,7 +210,7 @@ const HighFrequencyScan = (props) => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={onCloseDialog}>Disagree</Button>
+            <Button onClick={recoveryKeysByDict}>recover Keys By Dict</Button>
             <Button onClick={onCloseDialog} autoFocus>
               Agree
             </Button>
