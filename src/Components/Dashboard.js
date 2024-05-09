@@ -9,7 +9,7 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import WifiIcon from '@mui/icons-material/Wifi';
 import Settings from './Settings';
 import LowFrequencyScan from './LowFrequencyScan';
-import HighFrequencyScan from './HighFrequencyScan';
+import HighFrequencyScan from './HighFrequencyScan/HighFrequencyScan';
 
 
 
