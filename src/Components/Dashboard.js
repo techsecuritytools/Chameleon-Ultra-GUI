@@ -10,6 +10,7 @@ import WifiIcon from '@mui/icons-material/Wifi';
 import Settings from './Settings';
 import LowFrequencyScan from './LowFrequencyScan';
 import HighFrequencyScan from './HighFrequencyScan/HighFrequencyScan';
+import Footer from './Footer';
 
 
 
@@ -82,7 +83,7 @@ function Dashboard(props) {
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<CreateIcon/>}>Write Card</Button>
         <Settings ultraUsb={props.ultraUsb}/>
       </div>
-      
+      <Footer/>
     </div>
   );
 }
