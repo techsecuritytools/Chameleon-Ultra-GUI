@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import { Button } from '@mui/material';
+import { Alert, Button, Dialog } from '@mui/material';
 import WidgetsIcon from '@mui/icons-material/Widgets';
 import CreateIcon from '@mui/icons-material/Create';
 import SaveIcon from '@mui/icons-material/Save';
@@ -9,12 +9,12 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import WifiIcon from '@mui/icons-material/Wifi';
 import Settings from './Settings';
 import LowFrequencyScan from './LowFrequencyScan';
-import HighFrequencyScan from './HighFrequencyScan';
+import HighFrequencyScan from './HighFrequencyScan/HighFrequencyScan';
 
-
-
+const { Slot, FreqType } = window.ChameleonUltraJS
 
 function Dashboard(props) {
+  const [alertDialog,setAlertDialog] = useState({dialog:false,message:''})
 
   const numberOfPapers = 8
 
@@ -44,6 +44,11 @@ function Dashboard(props) {
     }
     return papers;
   };
+
+  const onCloseAlertDialog = () =>{
+    setAlertDialog({dialog:false,message:''})
+    props.handleGetChameleonInfo()
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -75,14 +80,18 @@ function Dashboard(props) {
         </Box>
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-        <HighFrequencyScan ultraUsb={props.ultraUsb} />
+        <HighFrequencyScan setAlertDialog={setAlertDialog} chameleonInfo={props.chameleonInfo} ultraUsb={props.ultraUsb} />
         <LowFrequencyScan ultraUsb={props.ultraUsb} />
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<WidgetsIcon/>}>Slot Manager</Button>
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon= {<SaveIcon/>}>Saved Cards</Button>
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<CreateIcon/>}>Write Card</Button>
         <Settings ultraUsb={props.ultraUsb}/>
       </div>
-      
+      <Dialog
+        open={alertDialog.dialog}
+        onClose={onCloseAlertDialog}>
+        <Alert severity="success">This is a success Alert.</Alert>
+      </Dialog>
     </div>
   );
 }
