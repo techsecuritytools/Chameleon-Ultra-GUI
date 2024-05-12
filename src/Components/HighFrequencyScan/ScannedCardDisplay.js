@@ -11,6 +11,7 @@ import _ from 'lodash'
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
+import SavedCardToChameleon from './SavedCardToChameleon';
 
 const ScannedCardDisplay = (props) => {
 
@@ -122,6 +123,9 @@ const ScannedCardDisplay = (props) => {
               </Table>
             </TableContainer>
             :''}
+            {
+              !props.notAllKeysDecrypted && <SavedCardToChameleon setOpenDialog={props.setOpenDialog} setAlertDialog={props.setAlertDialog} dataCard={props.dataCard} dialogInfo={props.dialogInfo} ultraUsb={props.ultraUsb} chameleonInfo={props.chameleonInfo} />
+            }
             </DialogContentText>
           </DialogContent>
         </>

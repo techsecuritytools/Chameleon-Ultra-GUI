@@ -1,11 +1,13 @@
 import React, { useState,useEffect } from 'react';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
-import { Button } from '@mui/material';
+import { Button, DialogTitle } from '@mui/material';
 import ScannedCardDisplay from './ScannedCardDisplay';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import Keys from '../../Keys/Keys';
 import _ from 'lodash'
+import Alert from '@mui/material/Alert';
+
 
 const { Buffer } = window.ChameleonUltraJS
 
@@ -16,7 +18,8 @@ const HighFrequencyScan = (props) => {
     const [openDialog,setOpenDialog] = useState(false);
     const [isRecoveryKeysInProcess,setIsRecoveryKeysInProcess] = useState(false)
     const [seconds, setSeconds] = useState(0);
-    const [allKeysDecrypted,setAllKeysDecrypted] = useState(false)
+    const [notAllKeysDecrypted,setNotAllKeysDecrypted] = useState(false)
+    const [dataCard,setDataCard] = useState()
 
     useEffect(() => {
       // Set up the interval
@@ -35,8 +38,12 @@ const HighFrequencyScan = (props) => {
         setSeconds(0)
     }
 
-    const checkStatus = (keysMifareA,keysMifareB) => {
-      setAllKeysDecrypted(keysMifareA.some(element => element.status === false) || keysMifareB.some(element => element.status === false))
+    const checkStatus = async(keysMifareA,keysMifareB) => {
+      let notallkeys = keysMifareA.some(element => element.status === false) || keysMifareB.some(element => element.status === false)
+      if(!notallkeys){
+        await getDataFromCard()
+      }
+      setNotAllKeysDecrypted(notallkeys)
   }
     
 
@@ -68,11 +75,12 @@ const HighFrequencyScan = (props) => {
         keysMifareA: keysA, // Adding new data property
         keysMifareB: keysB, // Adding new data property
       }));
+      setOpenScannedCardInfo(true)
     }catch(e){
       console.log('test : ',e)
+      setOpenScannedCardInfo(false)
     }
       setOpenDialog(true)
-      setOpenScannedCardInfo(true)
     };
 
     const recoveryKeysByDict = async() =>{
@@ -90,7 +98,6 @@ const HighFrequencyScan = (props) => {
         return indices;
       }, []);
 
-      console.log('Start recovery ...')
       setIsRecoveryKeysInProcess(true)
       for(let x=0;x<falseIndices.length;x++){
           keysToTest = Buffer.from(allKeys,'hex').chunk(6)
@@ -111,13 +118,13 @@ const HighFrequencyScan = (props) => {
           }
             break
       }
-      setIsRecoveryKeysInProcess(false)
+      checkStatus(copykeysMifareA,copykeysMifareB)
       setDialogInfo(prevInfo => ({
         ...prevInfo,
-        keysMifareA: copykeysMifareA, // Adding new data property
-        keysMifareB: copykeysMifareB, // Adding new data property
+        keysMifareA: copykeysMifareA, 
+        keysMifareB: copykeysMifareB, 
       }));
-      checkStatus(copykeysMifareA,copykeysMifareB)
+      setIsRecoveryKeysInProcess(false)
 
     }
 
@@ -145,15 +152,15 @@ const HighFrequencyScan = (props) => {
         let data = await props.ultraUsb.mf1ReadSectorByKeys(x, keys)
         dataFromCard.push(data.data.toString('hex').match(new RegExp('.{1,' + 32 + '}', 'g')) || [])
       }
-      return {
+      setDataCard({
         keys: keysfromCard,
         data: dataFromCard
-      }
+      })
     }
 
-    const handleDownload = async() => {
+    const downloadCard = async() => {
 
-      let datafromCard = await getDataFromCard()
+      let datafromCard = dataCard
       // Convert the data to a string and create a Blob from it
       
       const jsonStr = JSON.stringify(datafromCard, null, 2);
@@ -168,7 +175,7 @@ const HighFrequencyScan = (props) => {
       link.click();
       URL.revokeObjectURL(url);
       document.body.removeChild(link);
-  };
+    };
 
     const onCloseDialog = () =>{
       setDialogInfo({})
@@ -180,6 +187,7 @@ const HighFrequencyScan = (props) => {
         <div>
         <Button onClick={handleConnectScan} variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<DocumentScannerIcon/>}>HF Scan</Button>
         
+        
         <Dialog
           open={openDialog}
           onClose={onCloseDialog}
@@ -188,29 +196,40 @@ const HighFrequencyScan = (props) => {
           maxWidth= 'xl'
         >
           {
-          OpenScannedCardInfo && <ScannedCardDisplay isRecoveryKeysInProcess={isRecoveryKeysInProcess} dialogInfo={dialogInfo} OpenScannedCardInfo={OpenScannedCardInfo} />
+          OpenScannedCardInfo && <ScannedCardDisplay setOpenDialog={setOpenDialog} setAlertDialog={props.setAlertDialog} dataCard={dataCard} ultraUsb={props.ultraUsb} chameleonInfo={props.chameleonInfo} notAllKeysDecrypted={notAllKeysDecrypted} isRecoveryKeysInProcess={isRecoveryKeysInProcess} dialogInfo={dialogInfo} OpenScannedCardInfo={OpenScannedCardInfo} />
           
           }
-          <DialogActions>
-            {isRecoveryKeysInProcess?
-            <h4>Recovery Keys (~300 sec) : <label style={{color:'red'}}> {seconds} sec</label></h4>
-            :
-            allKeysDecrypted?
-            <Button onClick={recoveryKeysByDict}  variant="contained" style={{backgroundColor: 'green', color: 'white'}}>recover Keys By Dict</Button>
+          {dialogInfo?
+            <DialogActions>
+              {isRecoveryKeysInProcess?
+              <h4>Recovery Keys (~300 sec) : <label style={{color:'red'}}> {seconds} sec</label></h4>
+              :
+              notAllKeysDecrypted?
+              <Button onClick={recoveryKeysByDict}  variant="contained" style={{backgroundColor: 'green', color: 'white'}}>recover Keys By Dict</Button>
+              :
+              <>
+              <Button onClick={downloadCard} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                Download Card
+              </Button>
+              </>
+              }
+              <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                Close
+              </Button>
+            </DialogActions>
             :
             <>
-            <Button onClick={handleDownload} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-              Download Card
-            </Button>
-            <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-              Save Card to Chameleon
-            </Button>
+            <DialogTitle id="alert-dialog-title">High Frequency Card Not Found!</DialogTitle>
+            <DialogActions>
+              <Button onClick={handleConnectScan} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                Scan Card
+              </Button>
+              <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                Close
+              </Button>
+            </DialogActions>
             </>
-            }
-            <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-              Close
-            </Button>
-          </DialogActions>
+          }
         </Dialog>
         </div>
 
