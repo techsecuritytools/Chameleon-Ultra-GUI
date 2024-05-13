@@ -13,11 +13,14 @@ function App() {
   const [chameleonInfo,setChameleonInfo] = useState({})
   const [ultraUsb,setUltraUsb] = useState()
 
-  const handleConnectClick = async() => {
 
-    const ultra = new ChameleonUltra()
-    await ultra.use(new WebserialAdapter())
-
+  const handleGetChameleonInfo = async() => {
+    let ultra =ultraUsb;
+    if(!isDeviceConnected){
+      ultra = new ChameleonUltra()
+      await ultra.use(new WebserialAdapter())
+    }
+    
     var appVersion = await ultra.cmdGetAppVersion()
     var gitVersion = await ultra.cmdGetGitVersion()
     var slotsInfo  = await ultra.cmdSlotGetInfo()
@@ -39,13 +42,15 @@ function App() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
       <h1><i>Connect that bad boy killer!</i></h1>
         <img src={process.env.PUBLIC_URL + '/chameleon.png'} alt="Chameleon" />
-        <Button variant="contained" size='large' onClick={handleConnectClick} endIcon={<UsbIcon />}  style={{backgroundColor: 'green', color: 'white'}}>
+
+        <Button variant="contained" size='large' onClick={handleGetChameleonInfo} endIcon={<UsbIcon />}  style={{backgroundColor: 'green', color: 'white'}}>
+
         
         Connect your Chameleon-Ultra</Button>
         <Footer/>
       </div>
       :
-      <Dashboard ultraUsb={ultraUsb} chameleonInfo={chameleonInfo}/>
+      <Dashboard handleGetChameleonInfo={handleGetChameleonInfo} ultraUsb={ultraUsb} chameleonInfo={chameleonInfo}/>
   );
 }
 
