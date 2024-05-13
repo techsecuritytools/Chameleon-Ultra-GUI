@@ -72,8 +72,8 @@ function Dashboard(props) {
             justifyContent: 'center',
             '& > :not(style)': {
                 m: 2,
-                width: 250,
-                height: 200,
+                width: 200,
+                height: 150,
               }
           }}
         >
