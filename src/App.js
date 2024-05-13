@@ -39,13 +39,13 @@ function App() {
 
   return (
     isDeviceConnected === false?
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       <h1><i>Connect that bad boy killer!</i></h1>
-        <img src={process.env.PUBLIC_URL + '/chameleon.png'} alt="Chameleon" />
+        <img src={process.env.PUBLIC_URL + '/chameleon.png'} alt="Chameleon" width={500} height={400} />
 
-        <Button variant="contained" size='large' onClick={handleGetChameleonInfo} endIcon={<UsbIcon />}  style={{backgroundColor: 'green', color: 'white'}}>
+        <Button variant="contained" onClick={handleGetChameleonInfo} endIcon={<UsbIcon />}  style={{backgroundColor: 'green', color: 'white'}}>
 
-        
+    
         Connect your Chameleon-Ultra</Button>
         <Footer/>
       </div>
