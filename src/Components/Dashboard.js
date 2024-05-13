@@ -82,7 +82,7 @@ function Dashboard(props) {
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
         <HighFrequencyScan setAlertDialog={setAlertDialog} chameleonInfo={props.chameleonInfo} ultraUsb={props.ultraUsb} />
-        <LowFrequencyScan ultraUsb={props.ultraUsb} />
+        <LowFrequencyScan setAlertDialog={setAlertDialog} chameleonInfo={props.chameleonInfo} ultraUsb={props.ultraUsb} />
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<WidgetsIcon/>}>Slot Manager</Button>
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon= {<SaveIcon/>}>Saved Cards</Button>
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<CreateIcon/>}>Write Card</Button>
@@ -91,7 +91,7 @@ function Dashboard(props) {
       <Dialog
         open={alertDialog.dialog}
         onClose={onCloseAlertDialog}>
-        <Alert severity="success">This is a success Alert.</Alert>
+        <Alert severity="success">{alertDialog.message}</Alert>
       </Dialog>
       <Footer/>
     </div>
