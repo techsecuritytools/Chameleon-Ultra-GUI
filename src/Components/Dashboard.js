@@ -10,6 +10,7 @@ import WifiIcon from '@mui/icons-material/Wifi';
 import Settings from './Settings';
 import LowFrequencyScan from './LowFrequencyScan';
 import HighFrequencyScan from './HighFrequencyScan/HighFrequencyScan';
+import Footer from './Footer';
 
 const { Slot, FreqType } = window.ChameleonUltraJS
 
@@ -92,6 +93,7 @@ function Dashboard(props) {
         onClose={onCloseAlertDialog}>
         <Alert severity="success">This is a success Alert.</Alert>
       </Dialog>
+      <Footer/>
     </div>
   );
 }

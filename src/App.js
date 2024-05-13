@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Dashboard from './Components/Dashboard';
 import { Button } from '@mui/material';
 import UsbIcon from '@mui/icons-material/Usb';
+import Footer from './Components/Footer';
 
 
 const {ChameleonUltra,WebserialAdapter} = window.ChameleonUltraJS
@@ -39,11 +40,14 @@ function App() {
   return (
     isDeviceConnected === false?
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-      <h1>Connect that bad boy killer!</h1>
+      <h1><i>Connect that bad boy killer!</i></h1>
         <img src={process.env.PUBLIC_URL + '/chameleon.png'} alt="Chameleon" />
-        <Button variant="contained" onClick={handleGetChameleonInfo} endIcon={<UsbIcon />} style={{backgroundColor: 'green', color: 'white'}}>
+
+        <Button variant="contained" size='large' onClick={handleGetChameleonInfo} endIcon={<UsbIcon />}  style={{backgroundColor: 'green', color: 'white'}}>
+
         
         Connect your Chameleon-Ultra</Button>
+        <Footer/>
       </div>
       :
       <Dashboard handleGetChameleonInfo={handleGetChameleonInfo} ultraUsb={ultraUsb} chameleonInfo={chameleonInfo}/>

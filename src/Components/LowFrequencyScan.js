@@ -7,6 +7,13 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+
+
 
 const LowFrequencyScan = (props) => {
 
@@ -29,6 +36,19 @@ const LowFrequencyScan = (props) => {
         await props.ultraUsb.cmdEm410xWriteToT55xx(Buffer.from(lfScanInfo, 'hex'));
     }
 
+    //Slot saving
+    const [slotAvailability, setSlotAvailability] = useState(false);
+
+
+    const handleSlotAvalailabilityOpen = () => {
+      setSlotAvailability(true);
+    }
+
+    const handleSlotAvalailabilityClose = () => {
+      setSlotAvailability(false);
+    }
+
+
     const handleOpen = () => {
         setOpenLFscan(true);
       };
@@ -38,12 +58,13 @@ const LowFrequencyScan = (props) => {
         setLFscanInfo(false);
       };
 
+
     return (
         <div>
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon= {<DocumentScannerIcon/>} onClick={lfScan}>LF Scan</Button>
         <Dialog
         open={openLFscan}
-        onClose={handleClickClose}
+        onClose={()=>{handleClickClose();handleSlotAvalailabilityClose()}}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
         maxWidth= 'xl'
@@ -60,12 +81,33 @@ const LowFrequencyScan = (props) => {
           </div> ) : (
           "No tag found" 
           )}
+
+
+    {slotAvailability && (
+      <Card sx={{ minWidth: 275 }} >
+      <CardContent>
+        <Typography variant="h5" component="div">
+          Choose a Slot<br></br><br></br>
+        </Typography>
+        <Typography variant="body2">
+          Slots here
+        </Typography>
+      </CardContent>
+      <CardActions>
+        <Button size="small">Learn More</Button>
+      </CardActions>
+    </Card>)}
+
+
         </DialogContent>
           <DialogActions>
           {lfScanInfo? ( 
           <Button onClick={lfWriteT55xx} autoFocus variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}> Write to T55xx</Button>
         ) : "" }
-          <Button onClick={handleClickClose} autoFocus variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>close</Button>
+        {lfScanInfo? ( 
+          <Button onClick={handleSlotAvalailabilityOpen} autoFocus variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}> Save to Slot</Button>
+        ) : "" }
+          <Button onClick={() => {handleClickClose(); handleSlotAvalailabilityClose();}} autoFocus variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>close</Button>
           
           </DialogActions>
       </Dialog>

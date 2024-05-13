@@ -9,10 +9,7 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import BuildIcon from '@mui/icons-material/Build';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
-
-
-
-
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 
 
 const style = {
@@ -74,6 +71,11 @@ const Settings = (props) => {
         await props.ultraUsb.cmdWipeFds();
     }
 
+    //save settings
+    const saveSettings = async() => {
+        await props.ultraUsb.cmdSaveSettings();
+    }
+
 
     return (
         <div>
@@ -108,6 +110,7 @@ const Settings = (props) => {
         <Button variant="contained" sx={{ width: '100%', margin: '0px 10px' }} style={{backgroundColor: 'red', color: 'white' }} startIcon={<HealthAndSafetyIcon />} onClick={enterBootoader}>Enter Bootloader Mode</Button>
         <Button variant="contained" sx={{ width: '100%', margin: '10px 10px' }} style={{backgroundColor: 'red', color: 'white'}} startIcon={<RestartAltIcon />} onClick={defaultReset}>Reset Settings to default</Button>
         <Button variant="contained" sx={{ width: '100%', margin: '0px 10px' }} style={{backgroundColor: 'red', color: 'white'}} startIcon={<BuildIcon />} onClick={factoryReset}>Reset To Factory Settings</Button>
+        <Button variant="contained" sx={{ width: '100%', margin: '10px 10px' }} style={{backgroundColor: 'blue', color: 'white'}} startIcon={<CloudDownloadIcon />} onClick={saveSettings}>Save Settings</Button>
 
         </Box>
 
