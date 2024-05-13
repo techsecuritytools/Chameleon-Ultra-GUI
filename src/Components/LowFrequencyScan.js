@@ -12,106 +12,189 @@ import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { CardActionArea, Divider } from '@mui/material';
 
 
+const { Buffer ,FreqType,TagType } = window.ChameleonUltraJS
 
 const LowFrequencyScan = (props) => {
-
-    const [openLFscan,setOpenLFscan] = useState(false);
-    const [lfScanInfo,setLFscanInfo] = useState(false);
+    const [openDialog,setOpenDialog] = useState(false);
+    const [dialogInfo,setDialogInfo] = useState(false);
+    const [clicked, setClicked] = useState(Array(8).fill(false));
+    const [messageWarning, setMessageWarning] = useState(false);
+    const [messageWarningEM410, setMessageWarningEM410] = useState(false);
  
-    const lfScan = async() => {
+    const handleConnectScan = async() => {
         try{
             const id = await props.ultraUsb.cmdEm410xScan();
-            setLFscanInfo(id.toString('hex'));
-            handleOpen();
+            console.log('id ',id)
+            setDialogInfo(id);
         }catch(err){
-            handleOpen();
             console.log("no scan");
         }
+        setOpenDialog(true);
     }
 
     const lfWriteT55xx = async() => {
-        const { Buffer } = window.ChameleonUltraJS;
-        await props.ultraUsb.cmdEm410xWriteToT55xx(Buffer.from(lfScanInfo, 'hex'));
+        await props.ultraUsb.cmdEm410xWriteToT55xx(Buffer.from(dialogInfo, 'hex'));
     }
+    const saveToChameleon = async() => {
+      if (!clicked.some(element => element === true)) {
+        setMessageWarning(true);
+      } else {
+          let slotChoose = clicked.indexOf(true)
+          setMessageWarning(false);
+          if(props.chameleonInfo.isSlotsEnable[slotChoose].lf <= 0 || (props.chameleonInfo.isSlotsEnable[slotChoose].lf > 0 && window.confirm(`The Slot ${slotChoose+1} is already occupy. Are you sure you want to override it ?`))){
+              let slotChoose = clicked.indexOf(true)
+              console.log('slot : ',slotChoose)
+              console.log('SetActive : ',await props.ultraUsb.cmdSlotSetActive(slotChoose))
+              console.log('Active : ',await props.ultraUsb.cmdSlotGetActive())
+              console.log('dialogInfo : ',props.dialogInfo)
+              console.log('info :',props.dataCard)
+              
+              try{
+              await props.ultraUsb.cmdSlotSetEnable(slotChoose, FreqType.LF, true)
+              //await props.ultraUsb.cmdSlotResetTagType(slotChoose, TagType.MIFARE_1024)
+              //await props.ultraUsb.cmdSlotSaveSettings()
+              
+              await props.ultraUsb.cmdEm410xSetEmuId(dialogInfo)
+              await props.ultraUsb.cmdSlotSaveSettings()
 
-    //Slot saving
-    const [slotAvailability, setSlotAvailability] = useState(false);
+              onCloseDialog()
+              props.setAlertDialog({dialog:true,message:'The Data Was Saved In The Slot #'+(slotChoose+1)})
+          }
+          catch(e){
+              console.log(e)
+          }
+  
+          }
+      }
+    };
 
-
-    const handleSlotAvalailabilityOpen = () => {
-      setSlotAvailability(true);
-    }
-
-    const handleSlotAvalailabilityClose = () => {
-      setSlotAvailability(false);
-    }
-
-
-    const handleOpen = () => {
-        setOpenLFscan(true);
+      const onCloseDialog = () => {
+        setOpenDialog(false)
+        setDialogInfo()
       };
 
-      const handleClickClose = () => {
-        setOpenLFscan(false);
-        setLFscanInfo(false);
+      const handleClickSlot = (index) => {
+    
+        setMessageWarning(false);
+        const newClicked = Array(8).fill(false);
+        newClicked[index] = !newClicked[index]; // Toggle the state for the clicked card
+        setClicked(newClicked); // Update the stat
       };
 
+      const downloadData = async() => {
+
+        // Convert the data to a string and create a Blob from it
+        
+        const jsonStr = JSON.stringify({uid:dialogInfo.toString('hex')}, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+  
+        // Create a link element, use it to download the blob, and remove it after
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'LF_Data.json'; // Name the download file here
+        document.body.appendChild(link); // Required for Firefox
+        link.click();
+        URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      };
+
+      const writeToT55XX = async() =>{
+          try{
+            const id = await props.ultraUsb.cmdEm410xScan();
+            await props.ultraUsb.cmdEm410xWriteToT55xx(dialogInfo);
+            setMessageWarningEM410(false)
+            onCloseDialog()
+            props.setAlertDialog({dialog:true,message:'The Data Was Written In The Chip/Card Succesfully!'})
+          }
+          catch(e){
+            setMessageWarningEM410(true)
+            console.log('yanis:',e)
+          }
+      }
 
     return (
-        <div>
-        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon= {<DocumentScannerIcon/>} onClick={lfScan}>LF Scan</Button>
-        <Dialog
-        open={openLFscan}
-        onClose={()=>{handleClickClose();handleSlotAvalailabilityClose()}}
+      <div>
+      <Button onClick={handleConnectScan} variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<DocumentScannerIcon/>}>LF Scan</Button>
+      
+      
+      <Dialog
+        open={openDialog}
+        onClose={onCloseDialog}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
         maxWidth= 'xl'
-        >
-        <DialogTitle id="alert-dialog-title">
-          Scanned Tag Info
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description"></DialogContentText>
-          {lfScanInfo? (
-          <div>
-            <h1>Tag ID: {lfScanInfo}</h1>
-        
-          </div> ) : (
-          "No tag found" 
-          )}
-
-
-    {slotAvailability && (
-      <Card sx={{ minWidth: 275 }} >
-      <CardContent>
-        <Typography variant="h5" component="div">
-          Choose a Slot<br></br><br></br>
-        </Typography>
-        <Typography variant="body2">
-          Slots here
-        </Typography>
-      </CardContent>
-      <CardActions>
-        <Button size="small">Learn More</Button>
-      </CardActions>
-    </Card>)}
-
-
-        </DialogContent>
+      >
+        {dialogInfo?
+          <>
+            <DialogTitle id="alert-dialog-title">
+              Scanned Chip/Card Info
+            </DialogTitle>
+            <DialogContent>
+              <div>
+                <h2>Tag ID: {dialogInfo.toString('hex')}</h2>
+              </div>
+            <Divider style={{ marginTop: '2%', marginBottom: '2%' }}>Saved To Chameleon</Divider>
+            <Box display="flex" justifyContent="center" flexWrap="wrap" gap={5}>
+              {clicked.map((isClicked, index) => (
+                <Card key={index} sx={{ 
+                    bgcolor: isClicked ? 'green' : 'background.paper',
+                    border: props.chameleonInfo.isSlotsEnable[index].lf > 0 ? '1px solid red' : '1px solid green', // Sets the border color to red and width to 1px
+                    borderRadius: '8px' // Optionally add a border radius
+                }}>
+                  <CardActionArea onClick={() => handleClickSlot(index)}>
+                    <CardContent>
+                      <Typography sx={{ fontSize: 20 }} color="text.secondary" gutterBottom>
+                        Slot {index + 1}
+                      </Typography>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              ))}
+            </Box>
+            <Box display="flex" justifyContent="center" >
+              {messageWarning && <h4 style={{ textAlign: 'center', color: 'red' }}>You need to select a Slot to Save!</h4>}
+            </Box>
+            <Box display="flex" justifyContent="center" style={{ marginTop: '1%' }}>
+              <Button variant="contained" sx={{ backgroundColor: 'green', color: 'white' }} onClick={saveToChameleon}>
+                Save To Chameleon
+              </Button>
+            </Box>
+              <Divider style={{ marginTop: '2%', marginBottom: '2%' }}>Saved To T55XX</Divider>
+              {messageWarningEM410 && <h4 style={{ textAlign: 'center', color: 'red' }}> No Tag / Card Detected To Write Data!</h4>}
+              <Box display="flex" justifyContent="center" style={{ marginTop: '1%' }}>
+                <Button variant="contained" sx={{ backgroundColor: 'green', color: 'white' }} onClick={writeToT55XX}>
+                Write To T55XX
+                </Button>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={downloadData} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                Download Data
+              </Button>
+              <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                Close
+              </Button>
+            </DialogActions>
+          </>
+          :
+          <>
+          <DialogTitle id="alert-dialog-title">Low Frequency Chip/Card Not Found!</DialogTitle>
           <DialogActions>
-          {lfScanInfo? ( 
-          <Button onClick={lfWriteT55xx} autoFocus variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}> Write to T55xx</Button>
-        ) : "" }
-        {lfScanInfo? ( 
-          <Button onClick={handleSlotAvalailabilityOpen} autoFocus variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}> Save to Slot</Button>
-        ) : "" }
-          <Button onClick={() => {handleClickClose(); handleSlotAvalailabilityClose();}} autoFocus variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}}>close</Button>
-          
+            <Button onClick={handleConnectScan} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              Scan Card
+            </Button>
+            <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              Close
+            </Button>
           </DialogActions>
+          </>
+        }
       </Dialog>
-        </div>
+      </div>
 
     )
 }
