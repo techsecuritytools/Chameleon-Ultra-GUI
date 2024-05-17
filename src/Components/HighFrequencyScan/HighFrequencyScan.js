@@ -5,8 +5,6 @@ import ScannedCardDisplay from './ScannedCardDisplay';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import Keys from '../../Keys/Keys';
-import _ from 'lodash'
-import Alert from '@mui/material/Alert';
 
 
 const { Buffer } = window.ChameleonUltraJS

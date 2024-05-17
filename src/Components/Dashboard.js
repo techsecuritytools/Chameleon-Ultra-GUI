@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider } from '@mui/material';
@@ -13,14 +13,13 @@ import HighFrequencyScan from './HighFrequencyScan/HighFrequencyScan';
 import Footer from './Footer';
 import Keys from '../Keys/Keys';
 
-const {Buffer, Slot, FreqType,DeviceMode,TagType } = window.ChameleonUltraJS
+const {Buffer, FreqType,DeviceMode,TagType } = window.ChameleonUltraJS
 
 function Dashboard(props) {
   const [alertDialog,setAlertDialog] = useState({dialog:false,message:''})
   const [slotdialog,setSlotdialog] = useState(false)
   const [slotdialogInfo,setSlotdialogInfo] = useState({index:0,HF:{},LF:{},data:{},keys:new Set(),isDataShow:false})
   const [showLoader,setShowLoader] = useState(false)
-
 
 
   const numberOfPapers = 8
@@ -38,45 +37,49 @@ function Dashboard(props) {
     return {mfkeys,data}
     
   }
+
+  const getSlotInfo = async(slotClicked) =>{
+    let hf = {}
+    let lf = {}
+    let mfkeys = new Set()
+    let data = {}
+    try{
+      const antiCollision = await props.ultraUsb.cmdHf14aGetAntiCollData()
+
+      hf = {
+        uid : antiCollision.uid.toString('hex'),
+        atqa: antiCollision.atqa.toString('hex'),
+        sak: antiCollision.sak.toString('hex'),
+        ats: antiCollision.ats.toString('hex')
+      }
+
+      let dataKeys = await getKeysAndDataFromSlot();
+      mfkeys = dataKeys.mfkeys
+      data = dataKeys.data
+    }catch(e){
+      
+    }
+    try{
+      const uid = await props.ultraUsb.cmdEm410xGetEmuId()
+      lf = {uid :uid}
+    }catch(e){
+      
+    }
+    setSlotdialogInfo(prevInfo => ({
+      ...prevInfo,
+      index: slotClicked,
+      HF: hf,
+      LF:lf,
+      data:data,
+      keys:mfkeys
+    }))
+    props.handleGetChameleonInfo()
+  }
   const handleSlotClick = async(slotClicked) =>{
     try{
       await props.ultraUsb.cmdSlotSetActive(slotClicked)
       
-      let hf = undefined
-      let lf = undefined
-      try{
-        const antiCollision = await props.ultraUsb.cmdHf14aGetAntiCollData()
-
-        hf = {
-          uid : antiCollision.uid.toString('hex'),
-          atqa: antiCollision.atqa.toString('hex'),
-          sak: antiCollision.sak.toString('hex'),
-          ats: antiCollision.ats.toString('hex')
-        }
-
-        let {mfkeys,data} = await getKeysAndDataFromSlot();
-        setSlotdialogInfo(prevInfo => ({
-          ...prevInfo,
-          data:data,
-          keys:mfkeys,
-        }))
-
-      }catch(e){
-        
-      }
-      try{
-        const uid = await props.ultraUsb.cmdEm410xGetEmuId()
-        lf = {uid :uid}
-      }catch(e){
-        
-      }
-
-      setSlotdialogInfo(prevInfo => ({
-        ...prevInfo,
-        index: slotClicked,
-        HF: hf,
-        LF:lf
-      }))
+      getSlotInfo(slotClicked)
 
     slotDialogOpen()
     }
@@ -86,13 +89,21 @@ function Dashboard(props) {
   }
 
   const loadData = async() =>{
-    setShowLoader(true)
-    setSlotdialogInfo(prevInfo => ({
-      ...prevInfo,
-      isDataShow:true,
-    }))
-    
-    setShowLoader(false)
+    if(slotdialogInfo.isDataShow){
+      setSlotdialogInfo(prevInfo => ({
+        ...prevInfo,
+        isDataShow:false,
+      }))
+    }else{
+      setShowLoader(true)
+      setSlotdialogInfo(prevInfo => ({
+        ...prevInfo,
+        isDataShow:true,
+      }))
+      
+      setShowLoader(false)
+
+    }
   }
 
   const displayData = () =>{
@@ -163,8 +174,9 @@ function Dashboard(props) {
     setSlotdialog(false)
   }
 
-  const uploadFile = async(e) => {
+  const uploadFileUID = async(e) => {
     const file = e.target.files[0];
+    console.log('files: ',e.target.files)
     if (file) {
       const reader = new FileReader();
       reader.onload = async(event) => {
@@ -177,13 +189,41 @@ function Dashboard(props) {
             await props.ultraUsb.cmdEm410xSetEmuId(Buffer.from(jsonDataString, 'hex'))
             await props.ultraUsb.cmdSlotSaveSettings()
             await props.ultraUsb.cmdChangeDeviceMode(DeviceMode.TAG)
-            const uid = await props.ultraUsb.cmdEm410xGetEmuId()
-            let lf = {uid :uid}
-            setSlotdialogInfo(prevInfo => ({
-              ...prevInfo,
-              LF:lf
-            }))
-            props.handleGetChameleonInfo()
+            getSlotInfo(slotdialogInfo.index)
+        } catch (err) {
+          console.error("Error parsing JSON:", err);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const uploadFileMF = async(e) => {
+    const file = e.target.files[0];
+    console.log('files: ',e.target.files)
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async(event) => {
+        const fileContent = event.target.result;
+        try {
+            const jsonDataString = JSON.parse(fileContent);
+            await props.ultraUsb.cmdSlotChangeTagType(slotdialogInfo.index, TagType.MIFARE_1024)
+            await props.ultraUsb.cmdSlotSetEnable(slotdialogInfo.index, FreqType.HF, true)
+            await props.ultraUsb.cmdSlotSetActive(slotdialogInfo.index)
+            console.log('slotdialogInfo.HF : ',slotdialogInfo.HF)
+            await props.ultraUsb.cmdHf14aSetAntiCollData({
+              uid: Buffer.from(slotdialogInfo.HF.uid, 'hex'), 
+              atqa: Buffer.from(slotdialogInfo.HF.atqa, 'hex'), 
+              sak: Buffer.from(slotdialogInfo.HF.sak, 'hex'),
+              ats: Buffer.from(slotdialogInfo.HF.ats, 'hex')
+            })
+
+            for(let x=0;x<jsonDataString.length;x++){
+              await props.ultraUsb.cmdMf1EmuWriteBlock(x, Buffer.from(jsonDataString[x], 'hex'))
+              await props.ultraUsb.cmdSlotSaveSettings()
+            }
+            
+            getSlotInfo(slotdialogInfo.index)
         } catch (err) {
           console.error("Error parsing JSON:", err);
         }
@@ -225,6 +265,21 @@ function Dashboard(props) {
     URL.revokeObjectURL(url);
     document.body.removeChild(link);
   };
+
+  const resetMF = async() =>{
+    await props.ultraUsb.cmdSlotResetTagType(slotdialogInfo.index, TagType.MIFARE_1024)
+    await props.ultraUsb.cmdSlotSetEnable(slotdialogInfo.index, FreqType.HF, false)
+    await props.ultraUsb.cmdSlotSaveSettings()
+    getSlotInfo(slotdialogInfo.index)
+  }
+
+  const resetEm410x = async() =>{
+    await props.ultraUsb.cmdSlotResetTagType(slotdialogInfo.index, TagType.EM410X)
+    await props.ultraUsb.cmdSlotSetEnable(slotdialogInfo.index, FreqType.LF, false)
+    await props.ultraUsb.cmdSlotSaveSettings()
+    getSlotInfo(slotdialogInfo.index)
+  }
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -292,13 +347,13 @@ function Dashboard(props) {
               <table>
                 <tr>
                   <td><span style={{ fontWeight: 700 }}>UID</span></td>
-                  <td>{slotdialogInfo.HF.uid.toString('hex')}</td>
+                  <td>{slotdialogInfo.HF.uid}</td>
                   <td><span style={{ fontWeight: 700 }}>ATQA</span></td>
-                  <td>{slotdialogInfo.HF.atqa.toString('hex')}</td>
+                  <td>{slotdialogInfo.HF.atqa}</td>
                   <td><span style={{ fontWeight: 700 }}>SAK</span></td>
-                  <td>{slotdialogInfo.HF.sak.toString('hex')}</td>
+                  <td>{slotdialogInfo.HF.sak}</td>
                   <td><span style={{ fontWeight: 700 }}>ATS</span></td>
-                  <td>{slotdialogInfo.HF.ats.toString('hex')}</td>
+                  <td>{slotdialogInfo.HF.ats}</td>
                 </tr>
                 
               </table>
@@ -315,29 +370,29 @@ function Dashboard(props) {
                   <></>
               }
               <DialogActions>
-              {!slotdialogInfo.isDataShow?
                 <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={loadData}>
-                  Display Data
+                  {slotdialogInfo.isDataShow? 'Hide Data' : 'Show Data'}
                 </Button>
-                :
-                <></>
-              }
-              <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={downloadSlotData}>
-                Download Data
-              </Button>
-              <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-              <input type="file" id="files" onChange={uploadFile} class="hidden" style={{display:'none'}}/>
-              <label for="files">Upload file</label>
-              </Button>
+                <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={downloadSlotData}>
+                  Download Data
+                </Button>
+                <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                <input type="file" id="files" onChange={uploadFileMF} class="hidden" style={{display:'none'}}/>
+                <label for="files">Upload MF</label>
+                </Button>
+                <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={resetMF}>
+                  Reset MF
+                </Button>
             </DialogActions>
             </>
             :
             <>
               <h3>Empty</h3>
               <DialogActions>
-                <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-                  Upload Data
-                </Button>
+              <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                <input type="file" id="files" onChange={uploadFileMF} class="hidden" style={{display:'none'}}/>
+                <label for="files">Upload MF</label>
+              </Button>
               </DialogActions>
             </>
           }
@@ -356,16 +411,19 @@ function Dashboard(props) {
                     <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={downloadSlotDataT55xx}>
                       download UID
                     </Button>
+                    <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={resetEm410x}>
+                      Reset Em410x
+                    </Button>
               </>
                 :
                 <>
                 </>
               }
               <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-                <input type="file" id="files" onChange={uploadFile} class="hidden" style={{display:'none'}}/>
-                <label for="files">Upload UID</label>
+                <input type="file" id="files2" onChange={uploadFileUID} class="hidden" style={{display:'none'}}/>
+                <label for="files2">Upload UID</label>
               </Button>
-              <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={slotDialogClose}>
                 Close
               </Button>
             </DialogActions>
