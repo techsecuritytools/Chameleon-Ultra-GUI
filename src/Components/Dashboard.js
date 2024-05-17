@@ -186,7 +186,7 @@ function Dashboard(props) {
             await props.ultraUsb.cmdSlotSetEnable(slotdialogInfo.index, FreqType.LF, true)
             await props.ultraUsb.cmdSlotSetActive(slotdialogInfo.index)
             const jsonDataString = JSON.parse(fileContent);
-            await props.ultraUsb.cmdEm410xSetEmuId(Buffer.from(jsonDataString, 'hex'))
+            await props.ultraUsb.cmdEm410xSetEmuId(Buffer.from(jsonDataString.uid, 'hex'))
             await props.ultraUsb.cmdSlotSaveSettings()
             await props.ultraUsb.cmdChangeDeviceMode(DeviceMode.TAG)
             getSlotInfo(slotdialogInfo.index)
@@ -242,7 +242,7 @@ function Dashboard(props) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'SLOT'+(slotdialogInfo.index+1)+'_Data.json'; // Name the download file here
+    link.download = 'SLOT'+(slotdialogInfo.index+1)+'_MF_Data.json'; // Name the download file here
     document.body.appendChild(link); // Required for Firefox
     link.click();
     URL.revokeObjectURL(url);
@@ -252,14 +252,14 @@ function Dashboard(props) {
   const downloadSlotDataT55xx = async(data) => {
     // Convert the data to a string and create a Blob from it
     
-    const jsonStr = JSON.stringify(slotdialogInfo.LF.uid.toString('hex'), null, 2);
+    const jsonStr = JSON.stringify({uid:slotdialogInfo.LF.uid.toString('hex')}, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
 
     // Create a link element, use it to download the blob, and remove it after
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'SLOT'+(slotdialogInfo.index+1)+'_Data.json'; // Name the download file here
+    link.download = 'SLOT'+(slotdialogInfo.index+1)+'_T55xx_Data.json'; // Name the download file here
     document.body.appendChild(link); // Required for Firefox
     link.click();
     URL.revokeObjectURL(url);
