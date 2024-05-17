@@ -77,7 +77,6 @@ const HighFrequencyScan = (props) => {
       }));
       setOpenScannedCardInfo(true)
     }catch(e){
-      console.log('test : ',e)
       setOpenScannedCardInfo(false)
     }
       setOpenDialog(true)
@@ -102,16 +101,13 @@ const HighFrequencyScan = (props) => {
       for(let x=0;x<falseIndices.length;x++){
           keysToTest = Buffer.from(allKeys,'hex').chunk(6)
           sectorKey = await props.ultraUsb.mf1CheckSectorKeys(falseIndices[x], keysToTest)
-          console.log('sectorKey',_.mapValues(sectorKey, key => key.toString('hex')))
           if(sectorKey['96'] !== undefined){
-              console.log('KEY A FOUND : ',sectorKey['96'].toString('hex'))
               copykeysMifareA[falseIndices[x]] = {'name': 'A','status': true, 'key' : sectorKey['96'].toString('hex')}
           }else{
             copykeysMifareA[falseIndices[x]] = {'name': 'A','status': false, 'key' : ''}
           }
 
           if(sectorKey['97'] !== undefined){
-            console.log('KEY B FOUND : ',sectorKey['97'].toString('hex'))
               copykeysMifareB[falseIndices[x]] = {'name': 'B','status': true, 'key' : sectorKey['97'].toString('hex')}
             }else{
               copykeysMifareB[falseIndices[x]] = {'name': 'B','status': false, 'key' : ''}
@@ -150,7 +146,7 @@ const HighFrequencyScan = (props) => {
 
       for(let x=0;x<16;x++){
         let data = await props.ultraUsb.mf1ReadSectorByKeys(x, keys)
-        dataFromCard.push(data.data.toString('hex').match(new RegExp('.{1,' + 32 + '}', 'g')) || [])
+        dataFromCard = dataFromCard.concat(data.data.toString('hex').match(new RegExp('.{1,' + 32 + '}', 'g')) || [])
       }
       setDataCard({
         keys: keysfromCard,
@@ -163,7 +159,7 @@ const HighFrequencyScan = (props) => {
       let datafromCard = dataCard
       // Convert the data to a string and create a Blob from it
       
-      const jsonStr = JSON.stringify(datafromCard, null, 2);
+      const jsonStr = JSON.stringify(datafromCard.data, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
 
       // Create a link element, use it to download the blob, and remove it after
