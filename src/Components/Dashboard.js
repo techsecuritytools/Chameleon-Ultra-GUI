@@ -13,7 +13,7 @@ import HighFrequencyScan from './HighFrequencyScan/HighFrequencyScan';
 import Footer from './Footer';
 import Keys from '../Keys/Keys';
 
-const {Buffer, Slot, FreqType,Mf1KeyType } = window.ChameleonUltraJS
+const {Buffer, Slot, FreqType,DeviceMode,TagType } = window.ChameleonUltraJS
 
 function Dashboard(props) {
   const [alertDialog,setAlertDialog] = useState({dialog:false,message:''})
@@ -163,14 +163,56 @@ function Dashboard(props) {
     setSlotdialog(false)
   }
 
-  const uploadFile = () =>{
-
-  }
+  const uploadFile = async(e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async(event) => {
+        const fileContent = event.target.result;
+        try {
+            await props.ultraUsb.cmdSlotChangeTagType(slotdialogInfo.index, TagType.EM410X)
+            await props.ultraUsb.cmdSlotSetEnable(slotdialogInfo.index, FreqType.LF, true)
+            await props.ultraUsb.cmdSlotSetActive(slotdialogInfo.index)
+            const jsonDataString = JSON.parse(fileContent);
+            await props.ultraUsb.cmdEm410xSetEmuId(Buffer.from(jsonDataString, 'hex'))
+            await props.ultraUsb.cmdSlotSaveSettings()
+            await props.ultraUsb.cmdChangeDeviceMode(DeviceMode.TAG)
+            const uid = await props.ultraUsb.cmdEm410xGetEmuId()
+            let lf = {uid :uid}
+            setSlotdialogInfo(prevInfo => ({
+              ...prevInfo,
+              LF:lf
+            }))
+            props.handleGetChameleonInfo()
+        } catch (err) {
+          console.error("Error parsing JSON:", err);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
 
   const downloadSlotData = async() => {
     // Convert the data to a string and create a Blob from it
     
     const jsonStr = JSON.stringify(slotdialogInfo.data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+
+    // Create a link element, use it to download the blob, and remove it after
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'SLOT'+(slotdialogInfo.index+1)+'_Data.json'; // Name the download file here
+    document.body.appendChild(link); // Required for Firefox
+    link.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(link);
+  };
+
+  const downloadSlotDataT55xx = async(data) => {
+    // Convert the data to a string and create a Blob from it
+    
+    const jsonStr = JSON.stringify(slotdialogInfo.LF.uid.toString('hex'), null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
 
     // Create a link element, use it to download the blob, and remove it after
@@ -284,7 +326,7 @@ function Dashboard(props) {
                 Download Data
               </Button>
               <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-              <input type="file" id="files" class="hidden" style={{display:'none'}}/>
+              <input type="file" id="files" onChange={uploadFile} class="hidden" style={{display:'none'}}/>
               <label for="files">Upload file</label>
               </Button>
             </DialogActions>
@@ -301,27 +343,32 @@ function Dashboard(props) {
           }
           <Divider style={{ fontSize: 25, marginTop: 5, width: '100%' }}>T55xx Data</Divider>
           {props.chameleonInfo.isSlotsEnable[slotdialogInfo.index].lf && slotdialogInfo.LF !== undefined && Object.keys(slotdialogInfo.LF).length > 0 ?
-            <>
-              <h3>UID : {slotdialogInfo.LF.uid.toString('hex')}</h3>
-              <DialogActions>
-                <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-                  Scan Card
-                </Button>
-                <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-                  Close
-                </Button>
-              </DialogActions>
-          </>
-            :
-            <>
+          
+          <h3>UID : {slotdialogInfo.LF.uid.toString('hex')}</h3>
+          :
+          <>
             <h3>Empty</h3>
+          </>
+          }
             <DialogActions>
+              {props.chameleonInfo.isSlotsEnable[slotdialogInfo.index].lf && slotdialogInfo.LF !== undefined && Object.keys(slotdialogInfo.LF).length > 0 ?
+                <>
+                    <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={downloadSlotDataT55xx}>
+                      download UID
+                    </Button>
+              </>
+                :
+                <>
+                </>
+              }
               <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-                Upload Data
+                <input type="file" id="files" onChange={uploadFile} class="hidden" style={{display:'none'}}/>
+                <label for="files">Upload UID</label>
+              </Button>
+              <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                Close
               </Button>
             </DialogActions>
-            </>
-          }
         </DialogContent>
       </Dialog>
 
