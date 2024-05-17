@@ -27,10 +27,8 @@ const LowFrequencyScan = (props) => {
     const handleConnectScan = async() => {
         try{
             const id = await props.ultraUsb.cmdEm410xScan();
-            console.log('id ',id)
             setDialogInfo(id);
         }catch(err){
-            console.log("no scan");
         }
         setOpenDialog(true);
     }
@@ -46,11 +44,7 @@ const LowFrequencyScan = (props) => {
           setMessageWarning(false);
           if(props.chameleonInfo.isSlotsEnable[slotChoose].lf <= 0 || (props.chameleonInfo.isSlotsEnable[slotChoose].lf > 0 && window.confirm(`The Slot ${slotChoose+1} is already occupy. Are you sure you want to override it ?`))){
               let slotChoose = clicked.indexOf(true)
-              console.log('slot : ',slotChoose)
-              console.log('SetActive : ',await props.ultraUsb.cmdSlotSetActive(slotChoose))
-              console.log('Active : ',await props.ultraUsb.cmdSlotGetActive())
-              console.log('dialogInfo : ',props.dialogInfo)
-              console.log('info :',props.dataCard)
+              await props.ultraUsb.cmdSlotSetActive(slotChoose)
               
               try{
               await props.ultraUsb.cmdSlotSetEnable(slotChoose, FreqType.LF, true)
@@ -112,7 +106,6 @@ const LowFrequencyScan = (props) => {
           }
           catch(e){
             setMessageWarningEM410(true)
-            console.log('yanis:',e)
           }
       }
 
