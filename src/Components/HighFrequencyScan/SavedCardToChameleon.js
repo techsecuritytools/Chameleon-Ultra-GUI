@@ -29,30 +29,28 @@ const SavedCardToChameleon = (props) => {
         setMessageWarning(false);
         if(props.chameleonInfo.isSlotsEnable[slotChoose].hf <= 0 || (props.chameleonInfo.isSlotsEnable[slotChoose].hf > 0 && window.confirm(`The Slot ${slotChoose+1} is already occupy. Are you sure you want to override it ?`))){
             let slotChoose = clicked.indexOf(true)
-            await props.ultraUsb.cmdSlotSetActive(slotChoose)
-            
             try{
-            await props.ultraUsb.cmdSlotSetEnable(slotChoose, FreqType.HF, true)
-            //await props.ultraUsb.cmdSlotResetTagType(slotChoose, TagType.MIFARE_1024)
-            //await props.ultraUsb.cmdSlotSaveSettings()
-            
-            for(let x=0;x<16;x++){
-                await props.ultraUsb.cmdMf1EmuWriteBlock((4*x),Buffer.fromHexString(props.dataCard.data[(x*4)]))
-                await props.ultraUsb.cmdSlotSaveSettings()
-                await props.ultraUsb.cmdMf1EmuWriteBlock((4*x)+1,Buffer.fromHexString(props.dataCard.data[(x*4)+1]))
-                await props.ultraUsb.cmdSlotSaveSettings()
-                await props.ultraUsb.cmdMf1EmuWriteBlock((4*x)+2,Buffer.fromHexString(props.dataCard.data[(x*4)+2]))
-                await props.ultraUsb.cmdSlotSaveSettings()
-                await props.ultraUsb.cmdMf1EmuWriteBlock((4*x)+3,Buffer.fromHexString(props.dataCard.data[(x*4)+3]))
-                await props.ultraUsb.cmdSlotSaveSettings()
+              await props.ultraUsb.cmdSlotChangeTagType(slotChoose, TagType.MIFARE_1024)
+              await props.ultraUsb.cmdSlotSetEnable(slotChoose, FreqType.HF, true)
+              await props.ultraUsb.cmdSlotSetActive(slotChoose)
+
+              await props.ultraUsb.cmdHf14aSetAntiCollData({
+                uid: props.dialogInfo.uid, 
+                atqa: props.dialogInfo.atqa, 
+                sak: props.dialogInfo.sak,
+                ats: props.dialogInfo.ats
+              })
+              for(let x=0;x<props.dataCard.data.length;x++){
+                  await props.ultraUsb.cmdMf1EmuWriteBlock((x),Buffer.from(props.dataCard.data[x],'hex'))
+                  await props.ultraUsb.cmdSlotSaveSettings()
+              }
+              
+              props.setOpenDialog(false)
+              props.setAlertDialog({dialog:true,message:'The Data Was Saved In The Slot #'+slotChoose+1})
             }
-            
-            props.setOpenDialog(false)
-            props.setAlertDialog({dialog:true,message:'The Data Was Saved In The Slot #'+slotChoose+1})
-        }
-        catch(e){
-            console.log(e)
-        }
+            catch(e){
+                console.log(e)
+            }
 
         }
     }

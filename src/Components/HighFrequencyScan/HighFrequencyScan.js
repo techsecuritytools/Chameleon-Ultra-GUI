@@ -155,9 +155,19 @@ const HighFrequencyScan = (props) => {
     const downloadCard = async() => {
 
       let datafromCard = dataCard
+
+      let dataFormat = {
+        antiColl : {
+          uid: dialogInfo.uid.toString('hex'),
+          atqa: dialogInfo.atqa.toString('hex'),
+          ats: dialogInfo.ats.toString('hex'),
+          sak: dialogInfo.sak.toString('hex')
+        },
+        data: datafromCard.data
+      }
       // Convert the data to a string and create a Blob from it
       
-      const jsonStr = JSON.stringify(datafromCard.data, null, 2);
+      const jsonStr = JSON.stringify(dataFormat, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
 
       // Create a link element, use it to download the blob, and remove it after

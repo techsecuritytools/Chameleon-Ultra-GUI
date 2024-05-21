@@ -33,9 +33,6 @@ const LowFrequencyScan = (props) => {
         setOpenDialog(true);
     }
 
-    const lfWriteT55xx = async() => {
-        await props.ultraUsb.cmdEm410xWriteToT55xx(Buffer.from(dialogInfo, 'hex'));
-    }
     const saveToChameleon = async() => {
       if (!clicked.some(element => element === true)) {
         setMessageWarning(true);
@@ -44,18 +41,17 @@ const LowFrequencyScan = (props) => {
           setMessageWarning(false);
           if(props.chameleonInfo.isSlotsEnable[slotChoose].lf <= 0 || (props.chameleonInfo.isSlotsEnable[slotChoose].lf > 0 && window.confirm(`The Slot ${slotChoose+1} is already occupy. Are you sure you want to override it ?`))){
               let slotChoose = clicked.indexOf(true)
-              await props.ultraUsb.cmdSlotSetActive(slotChoose)
               
               try{
-              await props.ultraUsb.cmdSlotSetEnable(slotChoose, FreqType.LF, true)
-              //await props.ultraUsb.cmdSlotResetTagType(slotChoose, TagType.MIFARE_1024)
-              //await props.ultraUsb.cmdSlotSaveSettings()
+                await props.ultraUsb.cmdSlotChangeTagType(slotChoose, TagType.EM410X)
+                await props.ultraUsb.cmdSlotSetEnable(slotChoose, FreqType.LF, true)
+                await props.ultraUsb.cmdSlotSetActive(slotChoose)
               
-              await props.ultraUsb.cmdEm410xSetEmuId(dialogInfo)
-              await props.ultraUsb.cmdSlotSaveSettings()
+                await props.ultraUsb.cmdEm410xSetEmuId(dialogInfo)
+                await props.ultraUsb.cmdSlotSaveSettings()
 
-              onCloseDialog()
-              props.setAlertDialog({dialog:true,message:'The Data Was Saved In The Slot #'+(slotChoose+1)})
+                onCloseDialog()
+                props.setAlertDialog({dialog:true,message:'The Data Was Saved In The Slot #'+(slotChoose+1)})
           }
           catch(e){
               console.log(e)
@@ -98,7 +94,6 @@ const LowFrequencyScan = (props) => {
 
       const writeToT55XX = async() =>{
           try{
-            const id = await props.ultraUsb.cmdEm410xScan();
             await props.ultraUsb.cmdEm410xWriteToT55xx(dialogInfo);
             setMessageWarningEM410(false)
             onCloseDialog()

@@ -212,14 +212,14 @@ function Dashboard(props) {
             await props.ultraUsb.cmdSlotSetActive(slotdialogInfo.index)
             console.log('slotdialogInfo.HF : ',slotdialogInfo.HF)
             await props.ultraUsb.cmdHf14aSetAntiCollData({
-              uid: Buffer.from(slotdialogInfo.HF.uid, 'hex'), 
-              atqa: Buffer.from(slotdialogInfo.HF.atqa, 'hex'), 
-              sak: Buffer.from(slotdialogInfo.HF.sak, 'hex'),
-              ats: Buffer.from(slotdialogInfo.HF.ats, 'hex')
+              uid: Buffer.from(jsonDataString.antiColl.uid, 'hex'), 
+              atqa: Buffer.from(jsonDataString.antiColl.atqa, 'hex'), 
+              sak: Buffer.from(jsonDataString.antiColl.sak, 'hex'),
+              ats: Buffer.from(jsonDataString.antiColl.ats, 'hex')
             })
 
-            for(let x=0;x<jsonDataString.length;x++){
-              await props.ultraUsb.cmdMf1EmuWriteBlock(x, Buffer.from(jsonDataString[x], 'hex'))
+            for(let x=0;x<jsonDataString.data.length;x++){
+              await props.ultraUsb.cmdMf1EmuWriteBlock(x, Buffer.from(jsonDataString.data[x], 'hex'))
               await props.ultraUsb.cmdSlotSaveSettings()
             }
             
@@ -234,8 +234,13 @@ function Dashboard(props) {
 
   const downloadSlotData = async() => {
     // Convert the data to a string and create a Blob from it
+
+    let dataFormat = {
+      antiColl : slotdialogInfo.HF,
+      data: slotdialogInfo.data
+    }
     
-    const jsonStr = JSON.stringify(slotdialogInfo.data, null, 2);
+    const jsonStr = JSON.stringify(dataFormat, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
 
     // Create a link element, use it to download the blob, and remove it after
