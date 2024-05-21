@@ -285,6 +285,14 @@ function Dashboard(props) {
     getSlotInfo(slotdialogInfo.index)
   }
 
+  const writeToCard = () =>{
+
+  }
+  const writeToT55XX = () =>{
+
+  }
+  
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -318,9 +326,9 @@ function Dashboard(props) {
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
         <HighFrequencyScan setAlertDialog={setAlertDialog} chameleonInfo={props.chameleonInfo} ultraUsb={props.ultraUsb} />
         <LowFrequencyScan setAlertDialog={setAlertDialog} chameleonInfo={props.chameleonInfo} ultraUsb={props.ultraUsb} />
-        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<WidgetsIcon/>}>Slot Manager</Button>
+        {/*<Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<WidgetsIcon/>}>Slot Manager</Button>
         <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon= {<SaveIcon/>}>Saved Cards</Button>
-        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<CreateIcon/>}>Write Card</Button>
+        <Button variant="contained" sx={{ margin: '0 10px' }} style={{backgroundColor: 'green', color: 'white'}} endIcon={<CreateIcon/>}>Write Card</Button>*/}
         <Settings ultraUsb={props.ultraUsb}/>
       </div>
       <Dialog
@@ -385,6 +393,9 @@ function Dashboard(props) {
                 <input type="file" id="files" onChange={uploadFileMF} class="hidden" style={{display:'none'}}/>
                 <label for="files">Upload MF</label>
                 </Button>
+                <Button  autoFocus variant="contained" sx={{ backgroundColor: 'green', color: 'white' }} onClick={writeToCard}>
+                Write To Card
+                </Button>
                 <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={resetMF}>
                   Reset MF
                 </Button>
@@ -416,21 +427,27 @@ function Dashboard(props) {
                     <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={downloadSlotDataT55xx}>
                       download UID
                     </Button>
+                    <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                      <input type="file" id="files2" onChange={uploadFileUID} class="hidden" style={{display:'none'}}/>
+                      <label for="files2">Upload UID</label>
+                    </Button>
+                    <Button  autoFocus variant="contained" sx={{ backgroundColor: 'green', color: 'white' }} onClick={writeToT55XX}>
+                    Write To T55XX
+                    </Button>
                     <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={resetEm410x}>
                       Reset Em410x
                     </Button>
               </>
                 :
                 <>
+                <DialogActions>
+                  <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                    <input type="file" id="files2" onChange={uploadFileUID} class="hidden" style={{display:'none'}}/>
+                    <label for="files2">Upload UID</label>
+                  </Button>
+                </DialogActions>
                 </>
               }
-              <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
-                <input type="file" id="files2" onChange={uploadFileUID} class="hidden" style={{display:'none'}}/>
-                <label for="files2">Upload UID</label>
-              </Button>
-              <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={slotDialogClose}>
-                Close
-              </Button>
             </DialogActions>
         </DialogContent>
       </Dialog>
