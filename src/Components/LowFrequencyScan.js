@@ -51,7 +51,7 @@ const LowFrequencyScan = (props) => {
                 await props.ultraUsb.cmdSlotSaveSettings()
 
                 onCloseDialog()
-                props.setAlertDialog({dialog:true,message:'The Data Was Saved In The Slot #'+(slotChoose+1)})
+                props.setAlertDialog({dialog:true,message:'The Data Was Saved In The Slot #'+(Number(slotChoose)+1)})
           }
           catch(e){
               console.log(e)
