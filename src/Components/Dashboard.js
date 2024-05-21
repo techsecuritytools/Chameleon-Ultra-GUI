@@ -20,6 +20,7 @@ function Dashboard(props) {
   const [slotdialog,setSlotdialog] = useState(false)
   const [slotdialogInfo,setSlotdialogInfo] = useState({index:0,HF:{},LF:{},data:{},keys:new Set(),isDataShow:false})
   const [showLoader,setShowLoader] = useState(false)
+  const [messageWarningEM410, setMessageWarningEM410] = useState(false);
 
 
   const numberOfPapers = 8
@@ -82,6 +83,7 @@ function Dashboard(props) {
       getSlotInfo(slotClicked)
 
     slotDialogOpen()
+    setMessageWarningEM410(false)
     }
     catch(e){
       console.log(e)
@@ -288,7 +290,16 @@ function Dashboard(props) {
   const writeToCard = () =>{
 
   }
-  const writeToT55XX = () =>{
+  const writeToT55XX = async() =>{
+    try{
+      await props.ultraUsb.cmdEm410xScan();
+      await props.ultraUsb.cmdEm410xWriteToT55xx(slotdialogInfo.LF.uid);
+      setMessageWarningEM410(false)
+      setAlertDialog({dialog:true,message:'The Data Was Written In The Chip/Card Succesfully!'})
+    }
+    catch(e){
+      setMessageWarningEM410(true)
+    }
 
   }
   
@@ -382,6 +393,7 @@ function Dashboard(props) {
                 :
                   <></>
               }
+              
               <DialogActions>
                 <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={loadData}>
                   {slotdialogInfo.isDataShow? 'Hide Data' : 'Show Data'}
@@ -421,6 +433,10 @@ function Dashboard(props) {
             <h3>Empty</h3>
           </>
           }
+          
+            <Box display="flex" justifyContent="center" >
+                {messageWarningEM410 && <h4 style={{ textAlign: 'center', color: 'red' }}>No Tag / Card Detected To Write Data!</h4>}
+              </Box>
             <DialogActions>
               {props.chameleonInfo.isSlotsEnable[slotdialogInfo.index].lf && slotdialogInfo.LF !== undefined && Object.keys(slotdialogInfo.LF).length > 0 ?
                 <>

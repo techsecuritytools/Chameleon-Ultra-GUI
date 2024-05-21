@@ -94,6 +94,7 @@ const LowFrequencyScan = (props) => {
 
       const writeToT55XX = async() =>{
           try{
+            await props.ultraUsb.cmdEm410xScan();
             await props.ultraUsb.cmdEm410xWriteToT55xx(dialogInfo);
             setMessageWarningEM410(false)
             onCloseDialog()
