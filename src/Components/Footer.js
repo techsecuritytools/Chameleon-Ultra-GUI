@@ -44,9 +44,9 @@ const Footer = () => {
     <div style={{ position: 'fixed', bottom: 0,width: '100%',  flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#134900' }}>
       <Box>
       <br></br>
-      <Button onClick={handleOpenCredits} variant="text" style={{color: 'white'}}>Credits</Button>
-      <Button onClick={handleOpenInformation} variant="text" style={{color: 'white'}}>Information</Button>
-      <Button onClick={handleOpenAbout} variant="text" style={{color: 'white'}}>About us</Button>
+      <Button onClick={handleOpenCredits} variant="text" sx={{color: 'white'}}>Credits</Button>
+      <Button onClick={handleOpenInformation} variant="text" sx={{color: 'white'}}>Information</Button>
+      <Button onClick={handleOpenAbout} variant="text" sx={{color: 'white'}}>About us</Button>
       <Toolbar >
       <Typography variant="body1" color="white">
           Follow us:

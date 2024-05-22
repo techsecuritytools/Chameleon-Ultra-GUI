@@ -161,10 +161,10 @@ const LowFrequencyScan = (props) => {
               </Box>
             </DialogContent>
             <DialogActions>
-              <Button onClick={downloadData} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              <Button onClick={downloadData} autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
                 Download Data
               </Button>
-              <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              <Button onClick={onCloseDialog} autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
                 Close
               </Button>
             </DialogActions>
@@ -173,10 +173,10 @@ const LowFrequencyScan = (props) => {
           <>
           <DialogTitle id="alert-dialog-title">Low Frequency Chip/Card Not Found!</DialogTitle>
           <DialogActions>
-            <Button onClick={handleConnectScan} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+            <Button onClick={handleConnectScan} autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
               Scan Card
             </Button>
-            <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+            <Button onClick={onCloseDialog} autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
               Close
             </Button>
           </DialogActions>

@@ -12,6 +12,7 @@ import LowFrequencyScan from './LowFrequencyScan';
 import HighFrequencyScan from './HighFrequencyScan/HighFrequencyScan';
 import Footer from './Footer';
 import Keys from '../Keys/Keys';
+import _ from 'lodash'
 
 const {Buffer, FreqType,DeviceMode,TagType } = window.ChameleonUltraJS
 
@@ -25,18 +26,47 @@ function Dashboard(props) {
 
   const numberOfPapers = 8
 
-  const getKeysAndDataFromSlot = async() =>{
-    Keys.loadKeys()
-    let allKeys = Keys.getKeys()
-    let mfkeys = new Set();
+  const splitArrayIntoChunks = (array, chunkSize) => {
+    let result = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+        let chunk = array.slice(i, i + chunkSize);
+        result.push(chunk);
+    }
+    return result;
+}
+
+  const getDataFromSlot = async() =>{
     let data = []
-    let keysTotestFromAllKeys = allKeys
-    keysTotestFromAllKeys = keysTotestFromAllKeys.split()[0].split('\r\n')
     for(let x=0;x<64;x++){
       data.push((await props.ultraUsb.cmdMf1EmuReadBlock(x)).toString('hex'))
     }
-    return {mfkeys,data}
+    return data
     
+  }
+
+  const getKeysFromSlot = async() =>{
+    Keys.loadKeys()
+    let allKeys = Keys.getKeys()
+    let mfkeys = new Set();
+    let keysTotestFromAllKeys = allKeys
+    keysTotestFromAllKeys = keysTotestFromAllKeys.split()[0].split('\r\n')
+    console.log('keysTotestFromAllKeys' ,keysTotestFromAllKeys)
+    try{
+      const keys = Buffer.from(keysTotestFromAllKeys.join('\n'), 'hex').chunk(6)
+      console.log('1',keys)
+      for(let x=0; x<16;x++){
+        const sectorKey  = await props.ultraUsb.mf1CheckSectorKeys( x, keys )
+        console.log(_.mapValues(sectorKey, key => key.toString('hex')))
+      }
+      }
+      catch(e){
+        console.log('keysEror ',e)
+      }
+
+    /*setSlotdialogInfo(prevInfo => ({
+      ...prevInfo,
+      keys:mfkeys
+    }))*/
   }
 
   const getSlotInfo = async(slotClicked) =>{
@@ -54,9 +84,8 @@ function Dashboard(props) {
         ats: antiCollision.ats.toString('hex')
       }
 
-      let dataKeys = await getKeysAndDataFromSlot();
-      mfkeys = dataKeys.mfkeys
-      data = dataKeys.data
+      data = await getDataFromSlot();
+      //let keys23 = await getKeysFromSlot()
     }catch(e){
       
     }
@@ -72,7 +101,7 @@ function Dashboard(props) {
       HF: hf,
       LF:lf,
       data:data,
-      keys:mfkeys
+      keys:[]
     }))
     props.handleGetChameleonInfo()
   }
@@ -288,7 +317,7 @@ function Dashboard(props) {
   }
 
   const writeToCard = () =>{
-
+    //console.log('keys ',slotdialogInfo)
   }
   const writeToT55XX = async() =>{
     try{
@@ -395,20 +424,20 @@ function Dashboard(props) {
               }
               
               <DialogActions>
-                <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={loadData}>
+                <Button  autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}} onClick={loadData}>
                   {slotdialogInfo.isDataShow? 'Hide Data' : 'Show Data'}
                 </Button>
-                <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={downloadSlotData}>
+                <Button  autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}} onClick={downloadSlotData}>
                   Download Data
                 </Button>
-                <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                <Button  autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
                 <input type="file" id="files" onChange={uploadFileMF} class="hidden" style={{display:'none'}}/>
                 <label for="files">Upload MF</label>
                 </Button>
-                <Button  autoFocus variant="contained" sx={{ backgroundColor: 'green', color: 'white' }} onClick={writeToCard}>
+                <Button disabled  autoFocus variant="contained" sx={{ backgroundColor: 'green', color: 'white' }} onClick={writeToCard}>
                 Write To Card
                 </Button>
-                <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={resetMF}>
+                <Button  autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}} onClick={resetMF}>
                   Reset MF
                 </Button>
             </DialogActions>
@@ -417,7 +446,7 @@ function Dashboard(props) {
             <>
               <h3>Empty</h3>
               <DialogActions>
-              <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              <Button  autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
                 <input type="file" id="files" onChange={uploadFileMF} class="hidden" style={{display:'none'}}/>
                 <label for="files">Upload MF</label>
               </Button>
@@ -440,24 +469,24 @@ function Dashboard(props) {
             <DialogActions>
               {props.chameleonInfo.isSlotsEnable[slotdialogInfo.index].lf && slotdialogInfo.LF !== undefined && Object.keys(slotdialogInfo.LF).length > 0 ?
                 <>
-                    <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={downloadSlotDataT55xx}>
+                    <Button  autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}} onClick={downloadSlotDataT55xx}>
                       download UID
                     </Button>
-                    <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                    <Button  autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
                       <input type="file" id="files2" onChange={uploadFileUID} class="hidden" style={{display:'none'}}/>
                       <label for="files2">Upload UID</label>
                     </Button>
                     <Button  autoFocus variant="contained" sx={{ backgroundColor: 'green', color: 'white' }} onClick={writeToT55XX}>
                     Write To T55XX
                     </Button>
-                    <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}} onClick={resetEm410x}>
+                    <Button  autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}} onClick={resetEm410x}>
                       Reset Em410x
                     </Button>
               </>
                 :
                 <>
                 <DialogActions>
-                  <Button  autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+                  <Button  autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
                     <input type="file" id="files2" onChange={uploadFileUID} class="hidden" style={{display:'none'}}/>
                     <label for="files2">Upload UID</label>
                   </Button>

@@ -209,15 +209,15 @@ const HighFrequencyScan = (props) => {
               <h4>Recovery Keys (~300 sec) : <label style={{color:'red'}}> {seconds} sec</label></h4>
               :
               notAllKeysDecrypted?
-              <Button onClick={recoveryKeysByDict}  variant="contained" style={{backgroundColor: 'green', color: 'white'}}>recover Keys By Dict</Button>
+              <Button onClick={recoveryKeysByDict}  variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>recover Keys By Dict</Button>
               :
               <>
-              <Button onClick={downloadCard} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              <Button onClick={downloadCard} autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
                 Download Card
               </Button>
               </>
               }
-              <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              <Button onClick={onCloseDialog} autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
                 Close
               </Button>
             </DialogActions>
@@ -225,10 +225,10 @@ const HighFrequencyScan = (props) => {
             <>
             <DialogTitle id="alert-dialog-title">High Frequency Card Not Found!</DialogTitle>
             <DialogActions>
-              <Button onClick={handleConnectScan} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              <Button onClick={handleConnectScan} autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
                 Scan Card
               </Button>
-              <Button onClick={onCloseDialog} autoFocus variant="contained" style={{backgroundColor: 'green', color: 'white'}}>
+              <Button onClick={onCloseDialog} autoFocus variant="contained" sx={{backgroundColor: 'green', color: 'white'}}>
                 Close
               </Button>
             </DialogActions>
