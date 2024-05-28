@@ -1,24 +1,21 @@
+https://chameleon-ultra.com
 # Chameleon Ultra - Web App GUI
 
-The Chameleon Ultra is the ultimate RFID emulation device, offering low and high-frequency emulation, full read & write capabilities, bleeding-edge cracking, and wireless control. All of this is packed into a key-chain sized, fully open-sourced device.
+The Chameleon Ultra is the ultimate RFID emulation device, offering low and high-frequency emulation, full read & write capabilities, supporting EM410X tags for low frequency (125kHz) and Mifare Classic support for high frequency (13.56MHz). 
 
 # Features
 
-Multi-frequency Emulation: Supports emulation of both low and high-frequency RFID cards.
-Compatible with EM410x tags and Mifare Classic 1K.
-Full Read & Write Capabilities: Allows users to read from and write to RFID cards.
-Bleeding-edge Cracking: Utilizes advanced techniques for cracking RFID cards.
-Wireless Control: Can be controlled wirelessly for convenient usage.
-How it Works
-The Chameleon Ultra is the result of exceptional engineering ingenuity. The development team discovered a little-known RFID function in a popular Bluetooth controller that could be pushed to provide high-performance, multi-frequency RFID reading, writing, and cracking. This discovery led to the creation of the Chameleon Ultra, a tiny, high-performance RFID companion device for multi-frequency RFID emulation, cracking, reading, and writing.
+The web app provides an easy way to read, write and save cards in the chameleon ultra slots.
 
 # Getting Started
 
 To get started with the Chameleon Ultra, follow these steps:
-
-- Hardware Setup: Connect the Chameleon Ultra device to your computer or mobile device.
-- Software Installation: Install the necessary software drivers and applications for controlling the device.
-- Usage: Explore the capabilities of the Chameleon Ultra by emulating, reading, writing, and cracking RFID cards.
+ 
+ -As in for now we still can't install the firmware from the webapp therefore if you just purchased the Chameleon Ultra, you have to install the firmware from the Desktop GUI.
+ -Once you have the latest firmware, make sure you are using a browser that supports web serial port, here's a list: https://caniuse.com/web-serial 
+ -Connect your Chameleon via USB to the PC, *please note that BLE(bluethoot) is still not supported therefore you will need to connect via the USB.
+ -After plugging the Chameleon to the computer simply press the connect button and a pop up will appear. Select the COM port and connect.
+ -You can now controle the Chameleon Ultra via the webapp.
 
 # Contributing
 
